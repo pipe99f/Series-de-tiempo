@@ -7,6 +7,34 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.arima_process import ArmaProcess
 
 # %%##########
+## PUNTO 1
+##############
+# Series de Inflación de alimentos y precipitación en el aeropuerto ElDorado
+inflacion = pd.read_excel("Tarea_feb1/data/inflacion_alimentos_mensual.xlsx", index_col=0,
+                          names=["Fecha", "Valor"],
+                          parse_dates=["Fecha"], date_format="%d/%m/%Y", decimal=",")
+# noinspection PyTypeChecker
+precipitacion = pd.read_excel("Tarea_feb1/data/total_precipitacion.xlsx", sheet_name="Bogotá",
+                              index_col=0, names=["Fecha", "Valor"], usecols="B:C", skiprows=5,
+                              nrows=46, parse_dates=["Fecha"], date_format="%Y")
+
+#%% Gráfica Precipitación
+sns.lineplot(data=precipitacion, legend=False)
+plt.xlabel("Año")
+plt.ylabel("Precipitación anual")
+plt.show()
+
+#%% Gráfica Inflación
+sns.lineplot(data=inflacion, x="Fecha", y="Valor", legend=False)
+plt.xlabel("Fecha")
+plt.ylabel("Inflación mensual")
+plt.show()
+
+# %%##########
+## PUNTO 2
+##############
+
+# %%##########
 ## PUNTO 3
 ##############
 # Función para hacer las simulaciones, graficar y ajustar el modelo ARMA(1,1)
@@ -61,5 +89,5 @@ simular_graph_analizar_arma(ar, ma, sigma=np.sqrt(9))
 # %%##########
 ## PUNTO 4
 ##############
-data4 = pd.read_excel("./data/HW02-DatosPunto4.xls", sheet_name=0)
+data4 = pd.read_excel("Tarea_feb1/data/HW02-DatosPunto4.xls", sheet_name=0, index_col=0)
 # print(data4)
