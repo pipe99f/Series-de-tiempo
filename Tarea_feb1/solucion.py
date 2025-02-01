@@ -88,21 +88,18 @@ def simular_graph_analizar_arma(ar, ma, sigma=1, n=500):
     # plt.figure(figsize=(12, 6))
     plt.figure()
     plt.plot(simul)
-    plt.title("Simulación ARMA")
     plt.show()
 
     # ACF
     plot_acf(simul, lags=20)
-    plt.title("ACF")
     plt.show()
 
     # PACF
     plot_pacf(simul, lags=20)
-    plt.title("PACF")
     plt.show()
 
     # Ajustar ARMA
-    model = ARIMA(simul, order=(1, 0, 1))
+    model = ARIMA(simul, order=(len(ar) - 1, 0, len(ma) - 1))
     results = model.fit()
     print(results.summary())
     return
@@ -115,8 +112,8 @@ simular_graph_analizar_arma(ar, ma)
 
 
 # %% Segundo modelo ARMA: X_t = 0.2X_{t-1} + 0.55X_{t-2} + w_t
-ar = [1, -0.2, -0.55]
 ma = [1]
+ar = [1, -0.2, -0.55]
 simular_graph_analizar_arma(ar, ma, sigma=np.sqrt(2.25))
 
 # Tercer modelo ARMA: X_t = w_t + 0.9w_{t-1} - 0.8w_{t-2} - 0.8w_{t-3}
@@ -277,6 +274,7 @@ residuales_serie_1 = estimacion_diagnostico(
 # Graficamos los residuales de (2, 0, 2)
 modelo_serie_1 = ARIMA(serie1_identificacion, order=(2, 0, 2), trend="n")
 modelo_serie_1 = modelo_serie_1.fit()
+modelo_serie_1.summary()
 
 modelo_serie_1.plot_diagnostics(figsize=(16, 8))
 plt.show()
@@ -339,6 +337,7 @@ residuales_serie_2 = estimacion_diagnostico(
 # Graficamos los residuales de (0, 0, 2)
 modelo_serie_2 = ARIMA(serie2_identificacion, order=(0, 0, 2), trend="n")
 modelo_serie_2 = modelo_serie_2.fit()
+modelo_serie_2.summary()
 
 modelo_serie_2.plot_diagnostics(figsize=(16, 8))
 plt.show()
@@ -400,6 +399,8 @@ residuales_serie_3 = estimacion_diagnostico(
 # Graficamos los residuales de (1, 0, 1)
 modelo_serie_3 = ARIMA(serie3_identificacion, order=(1, 0, 1), trend="n")
 modelo_serie_3 = modelo_serie_3.fit()
+modelo_serie_3.summary()
+
 
 modelo_serie_3.plot_diagnostics(figsize=(16, 8))
 plt.show()
@@ -460,6 +461,8 @@ residuales_serie_4 = estimacion_diagnostico(
 # Graficamos los residuales de (1, 0, 1)
 modelo_serie_4 = ARIMA(serie4_identificacion, order=(2, 0, 0), trend="n")
 modelo_serie_4 = modelo_serie_4.fit()
+modelo_serie_4.summary()
+
 
 modelo_serie_4.plot_diagnostics(figsize=(16, 8))
 plt.show()
