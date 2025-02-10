@@ -1,4 +1,53 @@
 library(dplyr)
+library(forecast)
+library(tseries)
+library(TSA)
+library(ggplot2)
+library(readxl)
+
+
+
+
+
+####
+## PUNTO 2
+####
+
+p2 <- read_excel("P2.xls")
+desempleo <- ts(p2$DESEMP, start = c(1977, 1), frequency = 4)
+plot(desempleo, type = "l")
+
+## Estabilizar varianza
+log_desempleo <- log(desempleo)
+
+## Test ADF
+adf.test(log_desempleo) # No se rechaza H0
+
+log_desempleo_d1 <- diff(log_desempleo, 1) # Primera diferencia
+adf.test(log_desempleo_d1) # Se rechaza H0, la serie es estacionaria en diferencias
+
+## Determinar modelo ARMA adecuado
+acf(log_desempleo_d1) # Hay estacionalidad cada año
+pacf(log_desempleo_d1)
+eacf(log_desempleo_d1) # ARMA(3,4) es un modelo tentativo
+# auto.arima(log_desempleo_d1, trace = T)
+
+# modelo_arima <- arima(log_desempleo_d1, order = c(0, 0, 1), seasonal = list(order = c(0, 1, 0), period = 4))
+modelo_arima <- Arima(log_desempleo_d1, order = c(3, 0, 4))
+plot(residuals(modelo_arima))
+acf(residuals(modelo_arima))
+
+tsdiag(modelo_arima) # Parece ser apropiado el modelo a pesar de la estacionalidad
+
+## Pronóstico dentro de muestra
+pronosticos_dentro <- fitted(modelo_arima)
+rmse_dentro <- sqrt(mean((log_desempleo_d1 - pronosticos_dentro)^2))
+print(paste("RMSE dentro de muestra:", rmse_dentro))
+
+## Pronóstico a un año
+pronostico_fuera <- forecast(modelo_arima, h = 4)
+autoplot(pronostico_fuera)
+
 
 
 
