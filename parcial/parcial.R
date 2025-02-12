@@ -3,6 +3,7 @@ library(forecast)
 library(tseries)
 library(TSA)
 library(ggplot2)
+library(hwwntest)
 library(readxl)
 
 ####
@@ -10,11 +11,11 @@ library(readxl)
 ####
 serie1 <- read_excel("P1.xlsx")
 adver <- ts(serie1$Xt, start = c(1984, 1), frequency = 12)
-plot(adver)
+plot(adver, xlab = "Año", ylab = "Gasto")
 
 # Transformación de la serie (Estabilización de la varianza)
 adver_ln <- log(adver)
-plot(adver_ln, main = "Log de la Serie")
+plot(adver_ln, main = "Log de la Serie", xlab = "Año")
 adf.test(adver_ln)
 
 # Se obtiene estacionariedad
@@ -39,8 +40,8 @@ checkresiduals(adver_mod2)
 mod2_res <- adver_mod2$residuals
 
 ks.test(mod2_res, "pnorm", mean(mod2_res), sd(mod2_res)) #Kolmogorov-Smirnov test
-cpgram(mod2_res, main = "Cumulative periodogram") # Periodograma
-
+cpgram(mod2_res, main = "") # Periodograma
+bartlettB.test(mod2_res)
 
 ####
 ## PUNTO 2
@@ -80,8 +81,6 @@ print(paste("RMSE dentro de muestra:", rmse_dentro))
 ## Pronóstico a un año
 pronostico_fuera <- forecast(modelo_arima, h = 4)
 autoplot(pronostico_fuera)
-
-
 
 
 ####
@@ -193,3 +192,38 @@ hist(resultados$c_hat, main = "Distribución de c_hat", xlab = "", col = "skyblu
 abline(v = c, col = "red", lwd = 2)
 hist(resultados$phi_hat_modelo2, main = "Distribución de phi_hat (Modelo 2)", xlab = "", col = "skyblue")
 abline(v = phi, col = "red", lwd = 2)
+
+
+####
+## PUNTO 4
+####
+kalman_filter <- function(y, phi, sigma_w, sigma_v) {
+  n <- length(y)
+  m <- 5
+  x_est <- replicate(n, 0)
+  P <- replicate(n, 0)
+  K <- replicate(n, 0)
+  x_est[1] <- mean(y[1:m])
+  P[1] <- var(y[1:m])
+  
+  for (t in 2:n) {
+    x_pred <- phi * x_est[t - 1]
+    P_pred <- phi^2 * P[t - 1] + sigma_w^2
+    K[t] <- P_pred / (P_pred + sigma_v^2)  
+    x_est[t] <- x_pred + K[t] * (y[t] - x_pred)  
+    P[t] <- (1 - K[t]) * P_pred
+  }
+  
+  return(list(x_est = x_est, P = P, K = K))
+}
+# Se simula un AR(1)
+x_t <- arima.sim(list(order = c(1,0,0), ar = 0.7), n = 1000)
+# Se determinan los valores iniciales
+y_t <- x_t 
+acf_mod <- acf(y_t, lag.max = 2, plot = F)$acf
+phi <- acf_mod[2] / acf_mod[1]
+sigma_w <- (1 - phi**2)*var(y_t)/phi
+# Se ajusta el modelo
+ymode <- makeARIMA(phi, theta = 0, Delta = sigma_w) 
+ymode$phi #Valor estimado de phi
+ymode$Delta # Valor estimado de sigma^2
